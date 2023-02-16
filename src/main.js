@@ -1,102 +1,158 @@
-// Import only what you need, to help your bundler optimize final code size using tree shaking
-// see https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking)
-import {
-  PerspectiveCamera,
-  Scene,
-  WebGLRenderer,
-  BoxGeometry,
-  Mesh,
-  MeshNormalMaterial,
-  AmbientLight,
-  Clock
-} from 'three';
 
-// If you prefer to import the whole library, with the THREE prefix, use the following line instead:
-// import * as THREE from 'three'
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { ARButton } from 'three/addons/webxr/ARButton.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-// NOTE: three/addons alias is supported by Rollup: you can use it interchangeably with three/examples/jsm/  
+let container;
+let camera, scene, renderer;
+let controller1, controller2;
 
-import {
-  OrbitControls
-} from 'three/addons/controls/OrbitControls.js';
+let raycaster;
 
-import {
-  GLTFLoader
-} from 'three/addons/loaders/GLTFLoader.js';
+const intersected = [];
+const tempMatrix = new THREE.Matrix4();
 
-// Example of hard link to official repo for data, if needed
-// const MODEL_PATH = 'https://raw.githubusercontent.com/mrdoob/js/r148/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb';
+let group;
 
+init();
+animate();
 
-// INSERT CODE HERE
+function init() {
 
-const scene = new Scene();
-const aspect = window.innerWidth / window.innerHeight;
-const camera = new PerspectiveCamera(75, aspect, 0.1, 1000);
+  container = document.createElement('div');
+  document.body.appendChild(container);
 
-const light = new AmbientLight(0xffffff, 1.0); // soft white light
-scene.add(light);
+  scene = new THREE.Scene();
 
-const renderer = new WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 0, 3);
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.listenToKeyEvents(window); // optional
+  const controls = new OrbitControls(camera, container);
+  controls.minDistance = 0;
+  controls.maxDistance = 8;
 
-const geometry = new BoxGeometry(1, 1, 1);
-const material = new MeshNormalMaterial();
-const cube = new Mesh(geometry, material);
+  scene.add(new THREE.HemisphereLight(0x808080, 0x606060));
 
-scene.add(cube);
+  const light = new THREE.DirectionalLight(0xffffff);
+  light.position.set(0, 6, 0);
+  scene.add(light);
 
-function loadData() {
-  new GLTFLoader()
-    .setPath('assets/models/')
-    .load('test.glb', gltfReader);
-}
+  group = new THREE.Group();
+  scene.add(group);
 
 
-function gltfReader(gltf) {
-  let testModel = null;
+  // add gltf objects
+  const scaleOP = 0.2
+  let loaderOP = new GLTFLoader()
+  loaderOP.load('assets/models/flat_bird_icon_origami.glb', (gltf) => {
+    console.log(gltf)
+    let testModel = null;
+    testModel = gltf.scene;
+    testModel.scale.set(scaleOP, scaleOP, scaleOP);
+    if (testModel != null) {
+      console.log("Model loaded:  " + testModel);
+      for (let i = 0; i < 3; i++) {
+        testModel.position.set(Math.random() * 4 - 2, Math.random() * 4 - 2, Math.random() * 4 - 2)
+        scene.add(gltf.scene)
+      }
+      scene.add(gltf.scene);
+    } else {
+      console.log("Load FAILED.  ");
+    }
+  });
 
-  testModel = gltf.scene;
+  let scale = 0.005
+  let loader = new GLTFLoader()
+  loader.load('assets/models/cosmonaut_on_a_rocket.glb', (gltf) => {
+    console.log(gltf)
+    let testModel = null;
+    testModel = gltf.scene;
+    testModel.scale.set(scale, scale, scale);
+    if (testModel != null) {
+      console.log("Model loaded:  " + testModel);
+      for (let i = 0; i < 3; i++) {
+        testModel.position.set(Math.random() * 4 - 2, Math.random() * 4 - 2, Math.random() * 4 - 2)
+        scene.add(gltf.scene)
+      }
 
-  if (testModel != null) {
-    console.log("Model loaded:  " + testModel);
-    scene.add(gltf.scene);
-  } else {
-    console.log("Load FAILED.  ");
+    } else {
+      console.log("Load FAILED.  ");
+    }
+  });
+
+
+  const geometries = [
+    new THREE.BoxGeometry(0.2, 0.2, 0.2),
+    new THREE.ConeGeometry(0.2, 0.2, 64),
+    new THREE.CylinderGeometry(0.2, 0.2, 0.2, 64),
+    new THREE.IcosahedronGeometry(0.2, 8),
+    new THREE.TorusGeometry(0.2, 0.04, 64, 32)
+  ];
+
+  for (let i = 0; i < 50; i++) {
+
+    const geometry = geometries[Math.floor(Math.random() * geometries.length)];
+    const material = new THREE.MeshStandardMaterial({
+      color: Math.random() * 0xffffff,
+      roughness: 0.7,
+      metalness: 0.0
+    });
+
+    const object = new THREE.Mesh(geometry, material);
+
+    object.position.x = Math.random() * 4 - 2;
+    object.position.y = Math.random() * 4 - 2;
+    object.position.z = Math.random() * 4 - 2;
+
+    object.rotation.x = Math.random() * 2 * Math.PI;
+    object.rotation.y = Math.random() * 2 * Math.PI;
+    object.rotation.z = Math.random() * 2 * Math.PI;
+
+    object.scale.setScalar(Math.random() + 0.5);
+
+    /// -------------------- ///
+    // object.matrixAutoUpdate = false;
+    // object.visible = false;
+    /// -------------------- ///
+
+    group.add(object);
+
   }
+
+  //
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.xr.enabled = true;
+  container.appendChild(renderer.domElement);
+
+  document.body.appendChild(ARButton.createButton(renderer));
+
+  // controllers
+
+  controller1 = renderer.xr.getController(0);
+  controller1.addEventListener('selectstart', onSelectStart);
+  controller1.addEventListener('selectend', onSelectEnd);
+  scene.add(controller1);
+
+  controller2 = renderer.xr.getController(1);
+  controller2.addEventListener('selectstart', onSelectStart);
+  controller2.addEventListener('selectend', onSelectEnd);
+  scene.add(controller2);
+
+  raycaster = new THREE.Raycaster();
+
+  //
+  let hitTestSourceRequested = false;
+  let hitTestSource = null;
+  //
+
+  window.addEventListener('resize', onWindowResize);
+
 }
-
-loadData();
-
-
-camera.position.z = 3;
-
-
-const clock = new Clock();
-
-// Main loop
-const animation = () => {
-
-  renderer.setAnimationLoop(animation); // requestAnimationFrame() replacement, compatible with XR 
-
-  const delta = clock.getDelta();
-  const elapsed = clock.getElapsedTime();
-
-  // can be used in shaders: uniforms.u_time.value = elapsed;
-
-  cube.rotation.x = elapsed / 2;
-  cube.rotation.y = elapsed / 1;
-
-  renderer.render(scene, camera);
-};
-
-animation();
-
-window.addEventListener('resize', onWindowResize, false);
 
 function onWindowResize() {
 
@@ -107,4 +163,100 @@ function onWindowResize() {
 
 }
 
+function onSelectStart(event) {
 
+  const controller = event.target;
+
+  const intersections = getIntersections(controller);
+
+  if (intersections.length > 0) {
+
+    const intersection = intersections[0];
+
+    const object = intersection.object;
+    object.material.emissive.b = 1;
+    controller.attach(object);
+
+    controller.userData.selected = object;
+
+  }
+
+}
+
+function onSelectEnd(event) {
+
+  const controller = event.target;
+
+  if (controller.userData.selected !== undefined) {
+
+    const object = controller.userData.selected;
+    object.material.emissive.b = 0;
+    group.attach(object);
+
+    controller.userData.selected = undefined;
+
+  }
+
+
+}
+
+function getIntersections(controller) {
+
+  tempMatrix.identity().extractRotation(controller.matrixWorld);
+
+  raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+  raycaster.ray.direction.set(0, 0, - 1).applyMatrix4(tempMatrix);
+
+  return raycaster.intersectObjects(group.children, false);
+
+}
+
+function intersectObjects(controller) {
+
+  // Do not highlight when already selected
+
+  if (controller.userData.selected !== undefined) return;
+
+  const intersections = getIntersections(controller);
+
+  if (intersections.length > 0) {
+
+    const intersection = intersections[0];
+
+    const object = intersection.object;
+    object.material.emissive.r = 1;
+    intersected.push(object);
+
+  }
+
+}
+
+function cleanIntersected() {
+
+  while (intersected.length) {
+
+    const object = intersected.pop();
+    object.material.emissive.r = 0;
+
+  }
+
+}
+
+//
+
+function animate() {
+
+  renderer.setAnimationLoop(render);
+
+}
+
+function render() {
+
+  cleanIntersected();
+
+  intersectObjects(controller1);
+  intersectObjects(controller2);
+
+  renderer.render(scene, camera);
+
+}
