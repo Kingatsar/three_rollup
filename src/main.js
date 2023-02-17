@@ -19,7 +19,6 @@ const tempMatrix = new THREE.Matrix4();
 let group;
 
 
-
 init();
 animate();
 
@@ -46,6 +45,12 @@ function init() {
   group = new THREE.Group();
   scene.add(group);
 
+  // audio
+  const audioLoader = new THREE.AudioLoader();
+  const listener = new THREE.AudioListener();
+  camera.add(listener);
+
+  // objects
   const geometries = [
     new THREE.BoxGeometry(0.2, 0.2, 0.2),
     new THREE.ConeGeometry(0.2, 0.2, 64),
@@ -54,32 +59,36 @@ function init() {
     new THREE.TorusGeometry(0.2, 0.04, 64, 32)
   ];
 
+  audioLoader.load('assets/audio/examples_sounds_ping_pong.mp3', function (buffer) {
 
-  for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 30; i++) {
 
-    const geometry = geometries[Math.floor(Math.random() * geometries.length)];
-    const material = new THREE.MeshStandardMaterial({
-      color: Math.random() * 0xffffff,
-      roughness: 0.7,
-      metalness: 0.0
-    });
+      const geometry = geometries[Math.floor(Math.random() * geometries.length)];
+      const material = new THREE.MeshStandardMaterial({
+        color: Math.random() * 0xffffff,
+        roughness: 0.7,
+        metalness: 0.0
+      });
 
-    const object = new THREE.Mesh(geometry, material);
+      const object = new THREE.Mesh(geometry, material);
 
-    object.position.x = Math.random() * 4 - 2;
-    object.position.y = Math.random() * 4 - 2;
-    object.position.z = Math.random() * 4 - 2;
+      object.position.x = Math.random() * 4 - 2;
+      object.position.y = Math.random() * 4 - 2;
+      object.position.z = Math.random() * 4 - 2;
 
-    object.rotation.x = Math.random() * 2 * Math.PI;
-    object.rotation.y = Math.random() * 2 * Math.PI;
-    object.rotation.z = Math.random() * 2 * Math.PI;
+      object.rotation.x = Math.random() * 2 * Math.PI;
+      object.rotation.y = Math.random() * 2 * Math.PI;
+      object.rotation.z = Math.random() * 2 * Math.PI;
 
-    object.scale.setScalar(Math.random() + 0.5);
+      object.scale.setScalar(Math.random() + 0.5);
 
+      const audio = new THREE.PositionalAudio(listener);
+      audio.setBuffer(buffer);
+      object.add(audio);
+      group.add(object);
 
-    group.add(object);
-
-  }
+    }
+  });
 
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -103,12 +112,10 @@ function init() {
   controller2.addEventListener('selectend', onSelectEnd);
   scene.add(controller2);
 
-  raycaster = new THREE.Raycaster();
 
-  //
-  let hitTestSourceRequested = false;
-  let hitTestSource = null;
-  //
+
+
+  raycaster = new THREE.Raycaster();
 
   window.addEventListener('resize', onWindowResize);
 
@@ -140,6 +147,10 @@ function onSelectStart(event) {
 
     object.material.emissive.b = 1;
 
+    console.log("-------------");
+    console.log(object);
+    const audio = object.children[0];
+    audio.play();
     controller.userData.selected = object;
 
   }
