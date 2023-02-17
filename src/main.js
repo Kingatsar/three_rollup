@@ -3,17 +3,22 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { ARButton } from 'three/addons/webxr/ARButton.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { Clock } from 'three';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
 let container;
 let camera, scene, renderer;
 let controller1, controller2;
-
+const clock = new THREE.Clock();
+let then = 0;
 let raycaster;
 
 const intersected = [];
 const tempMatrix = new THREE.Matrix4();
 
 let group;
+
+
 
 init();
 animate();
@@ -41,47 +46,6 @@ function init() {
   group = new THREE.Group();
   scene.add(group);
 
-
-  // add gltf objects
-  const scaleOP = 0.2
-  let loaderOP = new GLTFLoader()
-  loaderOP.load('assets/models/flat_bird_icon_origami.glb', (gltf) => {
-    console.log(gltf)
-    let testModel = null;
-    testModel = gltf.scene;
-    testModel.scale.set(scaleOP, scaleOP, scaleOP);
-    if (testModel != null) {
-      console.log("Model loaded:  " + testModel);
-      for (let i = 0; i < 3; i++) {
-        testModel.position.set(Math.random() * 4 - 2, Math.random() * 4 - 2, Math.random() * 4 - 2)
-        scene.add(gltf.scene)
-      }
-      scene.add(gltf.scene);
-    } else {
-      console.log("Load FAILED.  ");
-    }
-  });
-
-  let scale = 0.005
-  let loader = new GLTFLoader()
-  loader.load('assets/models/cosmonaut_on_a_rocket.glb', (gltf) => {
-    console.log(gltf)
-    let testModel = null;
-    testModel = gltf.scene;
-    testModel.scale.set(scale, scale, scale);
-    if (testModel != null) {
-      console.log("Model loaded:  " + testModel);
-      for (let i = 0; i < 3; i++) {
-        testModel.position.set(Math.random() * 4 - 2, Math.random() * 4 - 2, Math.random() * 4 - 2)
-        scene.add(gltf.scene)
-      }
-
-    } else {
-      console.log("Load FAILED.  ");
-    }
-  });
-
-
   const geometries = [
     new THREE.BoxGeometry(0.2, 0.2, 0.2),
     new THREE.ConeGeometry(0.2, 0.2, 64),
@@ -90,7 +54,8 @@ function init() {
     new THREE.TorusGeometry(0.2, 0.04, 64, 32)
   ];
 
-  for (let i = 0; i < 50; i++) {
+
+  for (let i = 0; i < 30; i++) {
 
     const geometry = geometries[Math.floor(Math.random() * geometries.length)];
     const material = new THREE.MeshStandardMaterial({
@@ -111,16 +76,11 @@ function init() {
 
     object.scale.setScalar(Math.random() + 0.5);
 
-    /// -------------------- ///
-    // object.matrixAutoUpdate = false;
-    // object.visible = false;
-    /// -------------------- ///
 
     group.add(object);
 
   }
 
-  //
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -154,6 +114,9 @@ function init() {
 
 }
 
+
+
+
 function onWindowResize() {
 
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -174,8 +137,8 @@ function onSelectStart(event) {
     const intersection = intersections[0];
 
     const object = intersection.object;
+
     object.material.emissive.b = 1;
-    controller.attach(object);
 
     controller.userData.selected = object;
 
@@ -191,8 +154,8 @@ function onSelectEnd(event) {
 
     const object = controller.userData.selected;
     object.material.emissive.b = 0;
-    group.attach(object);
-
+    console.log(object);
+    object.parent.remove(object);
     controller.userData.selected = undefined;
 
   }
@@ -247,10 +210,16 @@ function cleanIntersected() {
 function animate() {
 
   renderer.setAnimationLoop(render);
+  const delta = clock.getDelta();
+  const elapsed = clock.getElapsedTime();
+
+
+
 
 }
 
-function render() {
+
+function render(now) {
 
   cleanIntersected();
 
@@ -260,3 +229,8 @@ function render() {
   renderer.render(scene, camera);
 
 }
+
+
+
+
+
