@@ -5,6 +5,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Clock } from 'three';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 let container;
 let camera, scene, renderer;
@@ -12,6 +13,8 @@ let controller1, controller2;
 const clock = new THREE.Clock();
 let then = 0;
 let raycaster;
+let material1;
+let analyser1;
 
 const intersected = [];
 const tempMatrix = new THREE.Matrix4();
@@ -49,6 +52,8 @@ function init() {
   const audioLoader = new THREE.AudioLoader();
   const listener = new THREE.AudioListener();
   camera.add(listener);
+  const listener2 = new THREE.AudioListener();
+  camera.add(listener2);
 
   // objects
   const geometries = [
@@ -90,7 +95,42 @@ function init() {
     }
   });
 
+  //sound sphere
+  const sphere = new THREE.SphereGeometry(20, 32, 16);
+  material1 = new THREE.MeshPhongMaterial({ color: 0xffc0cb, flatShading: true, shininess: 0 });
+  const mesh1 = new THREE.Mesh(sphere, material1);
+  mesh1.position.set(- 250, 30, 0);
+  scene.add(mesh1);
+  const sound1 = new THREE.PositionalAudio(listener2);
+  const songElement = document.getElementById('song');
+  sound1.setMediaElementSource(songElement);
+  sound1.setRefDistance(20);
+  songElement.play();
+  mesh1.add(sound1);
+  // analyser
+  analyser1 = new THREE.AudioAnalyser(sound1, 32);
 
+
+  const SoundControls = function () {
+    this.firstSphere = sound1.getVolume();
+  };
+
+
+  const gui = new GUI();
+  const soundControls = new SoundControls();
+  const volumeFolder = gui.addFolder('sound volume');
+
+
+  volumeFolder.add(soundControls, 'firstSphere').min(0.0).max(1.0).step(0.01).onChange(function () {
+
+    sound1.setVolume(soundControls.firstSphere);
+
+  });
+  volumeFolder.open();
+
+
+
+  // renderer
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -224,18 +264,21 @@ function animate() {
   const delta = clock.getDelta();
   const elapsed = clock.getElapsedTime();
 
+  render();
 
 
 
 }
 
 
-function render(now) {
+function render() {
 
   cleanIntersected();
 
   intersectObjects(controller1);
   intersectObjects(controller2);
+
+  material1.emissive.b = analyser1.getAverageFrequency() / 256;
 
   renderer.render(scene, camera);
 
