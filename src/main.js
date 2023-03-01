@@ -20,17 +20,66 @@ const intersected = [];
 const tempMatrix = new THREE.Matrix4();
 
 let group;
+const mixers = [];
+
+const manager = new THREE.LoadingManager(
+  () => {
+    console.log('loaded')
+    init();
+    animate();
+  },
+
+  // Progress
+  () => {
+    console.log('progress')
+  }
+);
+
+const models = {
+  pig: { url: 'assets/models/flat_bird_icon_origami.glb' },
+  cow: { url: 'assets/models/flat_bird_icon_origami.glb' },
+  llama: { url: 'assets/models/flat_bird_icon_origami.glb' },
+};
+{
+  const gltfLoader = new GLTFLoader(manager);
+  for (const model of Object.values(models)) {
+    gltfLoader.load(model.url, (gltf) => {
+      model.gltf = gltf;
+    });
+  }
+  console.log('---------------');
+  console.log(models);
+}
 
 
-init();
-animate();
+
+
 
 function init() {
 
   container = document.createElement('div');
   document.body.appendChild(container);
 
+  prepModelsAndAnimations();
+
   scene = new THREE.Scene();
+
+  Object.values(models).forEach((model, ndx) => {
+    if (model.gltf) {
+      const clonedScene = SkeletonUtils.clone(model.gltf.scene);
+
+      const root = new THREE.Object3D();
+      root.add(clonedScene);
+      scene.add(root);
+      root.position.x = (ndx - 3) * 3;
+      const mixer = new THREE.AnimationMixer(clonedScene);
+      const firstClip = Object.values(model.animations)[0];
+      const action = mixer.clipAction(firstClip);
+      action.play();
+      mixers.push(mixer);
+    }
+
+  });
 
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
   camera.position.set(0, 0, 3);
@@ -260,24 +309,32 @@ function cleanIntersected() {
 
 function animate() {
 
-  renderer.setAnimationLoop(render);
-  const delta = clock.getDelta();
-  const elapsed = clock.getElapsedTime();
+  // render();
 
-  render();
+  renderer.setAnimationLoop(render);
+
+
+
 
 
 
 }
 
 
-function render() {
+function render(now) {
+
+  now *= 0.001;  // convert to seconds
+  const deltaTime = now - then;
+  then = now;
 
   cleanIntersected();
 
   intersectObjects(controller1);
   intersectObjects(controller2);
 
+  for (const mixer of mixers) {
+    mixer.update(deltaTime);
+  }
   material1.emissive.b = analyser1.getAverageFrequency() / 256;
 
   renderer.render(scene, camera);
@@ -286,5 +343,16 @@ function render() {
 
 
 
+function prepModelsAndAnimations() {
+  Object.values(models).forEach(model => {
+    const animsByName = {};
+    if (model.gltf) {
+      model.gltf.animations.forEach((clip) => {
+        animsByName[clip.name] = clip;
+      });
+      model.animations = animsByName;
+    }
 
+  });
+}
 
