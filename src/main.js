@@ -36,19 +36,22 @@ const manager = new THREE.LoadingManager(
 );
 
 const models = {
-  pig: { url: 'assets/models/flat_bird_icon_origami.glb' },
-  cow: { url: 'assets/models/flat_bird_icon_origami.glb' },
-  llama: { url: 'assets/models/flat_bird_icon_origami.glb' },
+  bird: { url: 'assets/models/flat_bird_icon_origami.glb' },
+  // unicorn: { url: 'assets/models/bluebird_origami.glb' },
+  dragon: { url: 'assets/models/demon_dragon_full_texture.glb' },
+  // whale: { url: 'assets/models/phoenix.glb' },
+  // frog: { url: 'assets/models/origami_frog.glb' },
+  // puppy: { url: 'assets/models/origami_puppy.glb' },
 };
 {
   const gltfLoader = new GLTFLoader(manager);
   for (const model of Object.values(models)) {
     gltfLoader.load(model.url, (gltf) => {
+
       model.gltf = gltf;
     });
   }
-  console.log('---------------');
-  console.log(models);
+
 }
 
 
@@ -66,12 +69,15 @@ function init() {
 
   Object.values(models).forEach((model, ndx) => {
     if (model.gltf) {
+      console.log('---------------');
+      console.log(model.url);
+      console.log(model.animations);
       const clonedScene = SkeletonUtils.clone(model.gltf.scene);
 
       const root = new THREE.Object3D();
       root.add(clonedScene);
       scene.add(root);
-      root.position.x = (ndx - 3) * 3;
+      root.position.x = Math.random() * 4 - 2;
       const mixer = new THREE.AnimationMixer(clonedScene);
       const firstClip = Object.values(model.animations)[0];
       const action = mixer.clipAction(firstClip);
@@ -146,7 +152,7 @@ function init() {
 
   //sound sphere
   const sphere = new THREE.SphereGeometry(20, 32, 16);
-  material1 = new THREE.MeshPhongMaterial({ color: 0xffc0cb, flatShading: true, shininess: 0 });
+  material1 = new THREE.MeshPhongMaterial({ color: 0xffc0cb, flatShading: true, shininess: 0, transparent: true, opacity: 0.2 });
   const mesh1 = new THREE.Mesh(sphere, material1);
   mesh1.position.set(- 250, 30, 0);
   scene.add(mesh1);
@@ -177,8 +183,6 @@ function init() {
   });
   volumeFolder.open();
 
-
-
   // renderer
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -200,9 +204,6 @@ function init() {
   controller2.addEventListener('selectstart', onSelectStart);
   controller2.addEventListener('selectend', onSelectEnd);
   scene.add(controller2);
-
-
-
 
   raycaster = new THREE.Raycaster();
 
@@ -309,13 +310,7 @@ function cleanIntersected() {
 
 function animate() {
 
-  // render();
-
   renderer.setAnimationLoop(render);
-
-
-
-
 
 
 }
