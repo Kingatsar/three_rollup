@@ -206,8 +206,6 @@ function init() {
 
   const mesh3 = new THREE.Mesh(sphere, material3);
   pos = gltfPosition[2];
-  console.log(gltfPosition);
-  console.log(gltfPosition.length);
   mesh3.position.set(pos[0], pos[1], pos[2]);
   scene.add(mesh3);
   const sound3 = new THREE.PositionalAudio(listener2);
@@ -323,7 +321,6 @@ function onSelectEnd(event) {
 
     const object = controller.userData.selected;
     object.material.emissive.b = 0;
-    console.log(object);
     object.parent.remove(object);
     controller.userData.selected = undefined;
 

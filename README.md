@@ -1,54 +1,55 @@
-# three_rollup
+# Sound experience - Origami
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![GitHub issues](https://img.shields.io/github/issues/username/repo.svg)](https://github.com/username/repo/issues)
+[![GitHub stars](https://img.shields.io/github/stars/username/repo.svg)](https://github.com/username/repo/stargazers)
 
-## About
+Two origami birds and one dragon have gone missing in your room... But pay attention, because each of them is singing. To get a better view, pop the various obstacles (geometries) by touching them. You will have about 3 minutes to find all three beings before their songs stop.
 
-Basic [THREE.js](https://threejs.org/) project template using [JavaScript modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) and [Rollup](https://rollupjs.org).
+It is strongly advised to use headphones for a better experience.
 
-Allows to launch all official [THREE.js examples](https://threejs.org/examples) locally by resolving all module dependencies.
+## Table of Contents
 
-Includes VS Code integration (debug script and IntelliSense).
-
-Based on https://github.com/Mugen87/three-jsm
+- [Installation](#installation)
+- [License](#license)
+- [Useful git repositories](#usefulgitrepositories)
 
 ## Installation
 
-After downloading the repository, go to the root directory and install all dependencies using:
+Instructions for installing the project locally. Project using the ES6 modules of three.js and rollup.
+
+### Install node JS
+This projects requires to install npm and the latest version of node. Here are the following instructions to install it with a node version manager (nvm):
+
+``` cmd
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash 
+nvm -v
+nvm ls-remote
+nvm install node
+node -v
+npm -v
+```
+
+### Install project
+
+After downloading the repository, execute `npm install` once in the root directory to install all dependencies.
+
+You can then start a local server by using `npm run dev` then `npm start` and open `http://localhost:3000/` for testing.
 
 
-`npm install`
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Useful git repositories 
+
+Useful git repositories that helped for this project:
+
+- Mugen87: [three-jsm](https://github.com/Mugen87/three-jsm)
+- fdoganis: [three-parcel](https://github.com/fdoganis/three_parcel)
+- mrdoob: 
+    - [sandbox](https://github.com/mrdoob/three.js/blob/master/examples/webaudio_sandbox.html)
+    - [WebXR-AR-dragging](https://github.com/mrdoob/three.js/blob/master/examples/webxr_ar_dragging.html)
 
 
 
-## Usage
-
-Build the app using rollup:
-
-`npm run build`
-
-
-Launch the local server
-
-
-`npm start`
-
-
-Open `http://localhost:3000/` in your favorite browser for testing.
-
-
-## Modifying the code
-
-Simply edit files in `src` such as `src/main.js` and save.
-Some official THREE.js examples relying on libs like `ammo` or using resources (textures, models) or involving containers need to be adapted to work:
-- assets should go into `assets` directory, and the path of the loaders must be adapted
-- modifications to the html might be needed: some code requires `container` or `stats` `div`s
-- external libraries might require modifications to `rollup_config.js`
-
-Check `rollup_config.js`
-
-Keep in mind that all files references in `index.html` are relative to the `dist` folder hierarchy.
-
-Note that `three/examples/jsm` is successfully aliased as `three/addons` to keep changes to `main.js` minimal.
-
-Live reloading works.
-Remember to close your browser if you get a message saying that the default port is already being used.
 
