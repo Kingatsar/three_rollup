@@ -10,6 +10,7 @@ It is strongly advised to use headphones for a better experience.
 ## Table of Contents
 
 - [Installation](#installation)
+- [Use of the app](#useoftheapp)
 - [License](#license)
 - [Useful git repositories](#usefulgitrepositories)
 
@@ -33,8 +34,24 @@ npm -v
 
 After downloading the repository, execute `npm install` once in the root directory to install all dependencies.
 
-You can then start a local server by using `npm run dev` then `npm start` and open `http://localhost:3000/` for testing.
+You can then start a local server by using `npm run build` then `npm start` and open `http://localhost:3000/` for testing.
 
+## Use of the app
+
+### IPhone users
+For iPhone users with ngrok ([installation of ngrok](https://ngrok.com/download))
+
+Run on your CLI `npm run build` 
+
+On another CLI window, create a reachable website on the internet
+```cmd
+ngrok http http://localhost:3000/
+```
+
+Copy the given link by ngrok and generate a QR code like so `qr+ https://link-given.by/ngrok` on [duckduckgo](https://duckduckgo.com/)
+Scan your QRcode on the app **WebXR Viewer**
+
+### Github
 
 ## License
 
